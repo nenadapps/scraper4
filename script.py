@@ -1,4 +1,6 @@
 import datetime
+from random import randint
+from time import sleep
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
 
@@ -59,8 +61,7 @@ def get_details(url):
     except:
         stamp['raw_text'] = None
 
-    currency = "GBP"
-    stamp['currency'] = currency
+    stamp['currency'] = "GBP"
 
     # image_urls should be a list
     try:
@@ -74,7 +75,7 @@ def get_details(url):
     stamp['scrape_date'] = scrape_date
 
     stamp['url'] = url
-
+	sleep(randint(25, 69)) # Waiting between 25s and 69s between requests.
     return stamp
 
 url = 'https://www.zeboose.com/aden-1939-mlh-definitives-sg16-27-sc16-27/p3194'
