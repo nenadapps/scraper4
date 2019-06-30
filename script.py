@@ -1,5 +1,5 @@
 import datetime
-from random import randint
+from random import randint,shuffle
 from time import sleep
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
@@ -15,7 +15,7 @@ def get_html(url):
         
     return html_content
 
-def get_details(url):
+def get_details(url, category):
     
     stamp = {}
 
@@ -43,17 +43,19 @@ def get_details(url):
     except:
         stamp['sku'] = None
 
+    stamp['category'] = category
+
     try:
         year = html.find_all("a", {"class":"brand"})[0].get_text()
-        stamp['year']=year
+        stamp['year'] = year
     except:
-        stamp['year']=None
+        stamp['year'] = None
 
     try:
         country = html.find_all("dd", {"class":"scat"})[0].get_text()
-        stamp['country']=country
+        stamp['country'] = country
     except:
-        stamp['country']=None
+        stamp['country'] = None
 
     try:
         raw_text = html.find_all("div", {"id":"desc_1"})[0].get_text()
@@ -75,10 +77,57 @@ def get_details(url):
     stamp['scrape_date'] = scrape_date
 
     stamp['url'] = url
-	sleep(randint(25, 69)) # Waiting between 25s and 69s between requests.
+    print(stamp)
+    print('+++++++++++++')
+    sleep(randint(25, 69)) # Waiting between 25s and 69s between requests.
     return stamp
 
-url = 'https://www.zeboose.com/aden-1939-mlh-definitives-sg16-27-sc16-27/p3194'
-stamp = get_details(url)
-print(stamp)
+def get_category_items(category_url):
+    items = []
+    next_url = ''
+
+    try:
+        category_html = get_html(category_url)
+    except:
+        return items, next_url
+
+    try:
+        for item in category_html.select('.product a'):
+            item_link = 'https://www.zeboose.com' + item.get('href')
+            items.append(item_link)
+    except: 
+        pass
+
+    try:
+        next_url = category_html.select('link[rel=next]')[0].get('href')
+    except:
+        pass
+
+    shuffle(items)
+
+    return items, next_url
+
+# choose category url with an input statement
+continents = {
+    'Africa':'https://www.zeboose.com/africa/c70', 
+    'Asia':'https://www.zeboose.com/asia/c69',
+    'America':'https://www.zeboose.com/america/c72',
+    'Europe':'https://www.zeboose.com/europe/c68',
+    'Oceania':'https://www.zeboose.com/oceania/c71'
+}
+
+for key in continents:
+    print(key + ': ' + continents[key]) 
+
+continent = input('Pick a continent: ')
+
+try:
+    category_url = continents[continent]
+    while(category_url):
+        category_items, category_url = get_category_items(category_url)
+        # loop through all category items
+        for category_item in category_items:
+            stamp = get_details(category_item, continent) 
+except:
+    print('This continent doesn\'t exist in list. Please pick some of provided continents.')
          
