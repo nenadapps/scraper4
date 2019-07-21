@@ -47,7 +47,7 @@ hdr = {'User-Agent': "'"+UA.random+"'",
 def get_html(url):
     html_content = ''
     try:
-        req = Request(url, headers= {'User-Agent': 'Mozilla/5.0'})#hdr)
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})#hdr)
         html_page = urlopen(req).read()
         html_content = BeautifulSoup(html_page, "html.parser")
     except: 
@@ -57,14 +57,14 @@ def get_html(url):
 def get_details(url, category):
     stamp = {}
     try:
-       html = get_html(url)
+        html = get_html(url)
     except:
-       return stamp
+        return stamp
 
     try:
         price = html.find_all("div", {"id":"showProdPrice"})[0].get_text()
-        price = price.replace('£','')
-        stamp['price'] = price.replace('&pound;','').strip()
+        price = price.replace('£', '')
+        stamp['price'] = price.replace('&pound;', '').strip()
     except:
         stamp['price'] = None
 
@@ -95,29 +95,37 @@ def get_details(url, category):
 
     try:
         raw_text = html.find_all("div", {"id":"desc_1"})[0].get_text()
-        stamp['raw_text'] = raw_text.replace('¬†','.').strip()
+        stamp['raw_text'] = raw_text.replace('¬†', '.').strip()
     except:
         stamp['raw_text'] = None
     
     try:
         temp = raw_text.split(" ")
-        scott_num = temp[-2].replace('SC','')
-        SG = temp[-3].replace('SG','')
-        stamp['scott_num']=scott_num
-        stamp['SG']=SG.replace(";","")
+        scott_num = temp[-2].replace('SC', '')
+        SG = temp[-3].replace('SG', '')
+        stamp['scott_num'] = scott_num
+        stamp['SG'] = SG.replace(";", "")
     except:
-        stamp['scott_num']=None
-        stamp['SG']=None
+        stamp['scott_num'] = None
+        stamp['SG'] = None
         
     stamp['currency'] = "GBP"
 
     # image_urls should be a list
-    images =[]
+    images = []
     try:
-        images.append(html.find_all("a", {"id":"def_image"})[0].get('href'))
-        stamp['image_urls'] = images
+        image_items = html.select('#eimgHovers img')
+        if image_items:
+            for image_item in image_items:
+                img = image_item.get('src').replace('micro', 'zoom')
+                images.append(img)
+        else:
+            img = html.find_all("a", {"id":"def_image"})[0].get('href')
+            images.append(img)
     except:
-        stamp['image_urls'] = None
+        pass
+        
+    stamp['image_urls'] = images      
 
     # scrape date in format YYYY-MM-DD
     scrape_date = datetime.date.today().strftime('%Y-%m-%d')
@@ -272,19 +280,19 @@ try:
         count += 1
         # loop through all category items
         for category_item in category_items:
-        	try:
-	            count += 1
-	            if count > randint(75,156):
-	                sleep(randint(500,2000))
-	                #connectTor()
-	                count = 0
-	            else:
-	                pass
-	            stamp = get_details(category_item, continent)
-	            count += len(file_names(stamp))
-	            #query_for_previous(stamp)
-	            #db_update_image_download(stamp)
-	        except:
-	        	pass
+            try:
+                count += 1
+                if count > randint(75, 156):
+                    sleep(randint(500, 2000))
+                    #connectTor()
+                    count = 0
+                else:
+                    pass
+                stamp = get_details(category_item, continent)
+                count += len(file_names(stamp))
+                #query_for_previous(stamp)
+                #db_update_image_download(stamp)
+            except:
+                pass
 except:
     print('This continent doesn\'t exist in list. Please pick some of provided continents.')
