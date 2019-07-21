@@ -1,19 +1,19 @@
 import re
 import datetime
 import os
-import sqlite3
-from fake_useragent import UserAgent
+#import sqlite3
+#from fake_useragent import UserAgent
 import shutil
-from stem import Signal
-from stem.control import Controller
-import socket
-import socks
+#from stem import Signal
+#from stem.control import Controller
+#import socket
+#import socks
 import requests
 from random import randint, shuffle
 from time import sleep
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
-
+'''
 controller = Controller.from_port(port=9051)
 controller.authenticate()
 
@@ -43,11 +43,11 @@ hdr = {'User-Agent': "'"+UA.random+"'",
        'Accept-Encoding': 'none',
        'Accept-Language': 'en-US,en;q=0.8',
        'Connection': 'keep-alive'}
-
+'''
 def get_html(url):
     html_content = ''
     try:
-        req = Request(url, headers=hdr)
+        req = Request(url, headers= {'User-Agent': 'Mozilla/5.0'})#hdr)
         html_page = urlopen(req).read()
         html_content = BeautifulSoup(html_page, "html.parser")
     except: 
@@ -149,7 +149,7 @@ def get_category_items(category_url):
         pass
     shuffle(items)
     return items, next_url
-
+'''
 def file_names(stamp):
     file_name = []
     rand_string = "RAND_ze"+str(randint(0,100000))
@@ -248,7 +248,7 @@ def db_update_image_download(stamp):
     print ("++++++++++++")
     print (" ")
     sleep(randint(45,140)) 
-
+'''
 # choose category url with an input statement
 continents = {
     'Africa':'https://www.zeboose.com/africa/c70', 
@@ -263,8 +263,8 @@ for key in continents:
 continent = input('Pick a continent: ')
 
 count = 0
-connectTor()
-showmyip()
+#connectTor()
+#showmyip()
 try:
     category_url = continents[continent]
     while(category_url):
@@ -276,14 +276,14 @@ try:
 	            count += 1
 	            if count > randint(75,156):
 	                sleep(randint(500,2000))
-	                connectTor()
+	                #connectTor()
 	                count = 0
 	            else:
 	                pass
 	            stamp = get_details(category_item, continent)
 	            count += len(file_names(stamp))
-	            query_for_previous(stamp)
-	            db_update_image_download(stamp)
+	            #query_for_previous(stamp)
+	            #db_update_image_download(stamp)
 	        except:
 	        	pass
 except:
