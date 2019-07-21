@@ -29,8 +29,11 @@ def showmyip():
     r = requests.Session()
     page = r.get(url)
     soup = BeautifulSoup(page.content, "lxml")
-    ip_address = soup.find("span",{"class":"ip_address"}).text.strip()
-    print(ip_address)
+    try:
+    	ip_address = soup.find("span",{"class":"ip_address"}).text()
+    	print(ip_address)
+    except:
+        print('IP problem')
     
 UA = UserAgent(fallback='Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.2 (KHTML, like Gecko) Chrome/22.0.1216.0 Safari/537.2')
 
@@ -155,14 +158,14 @@ def file_names(stamp):
 
 def query_for_previous(stamp):
     # CHECKING IF Stamp IN DB
-    os.chdir("/Volumes/stamps_copy/")
+    os.chdir("/Volumes/Stamps/")
     conn1 = sqlite3.connect('Reference_data.db')
     c = conn1.cursor()
     col_nm = 'url'
     col_nm2 = 'raw_text'
     unique = stamp['url']
     unique2 = stamp['raw_text']
-    c.execute('SELECT * FROM zeboose WHERE "{col_nm}" LIKE "{unique}%" AND "{col_nm2}" LIKE "{unique2}%"')
+    c.execute('SELECT * FROM zeboose WHERE "{cn}" LIKE "{un}%" AND "{cn2}" LIKE "{un2}%"'.format(cn=col_nm, cn2=col_nm2, un=unique, un2=unique2)))
     all_rows = c.fetchall()
     conn1.close()
     price_update=[]
@@ -184,7 +187,7 @@ def query_for_previous(stamp):
         sleep(randint(10,45))
         pass
     else:
-        os.chdir("/Volumes/stamps_copy/")
+        os.chdir("/Volumes/Stamps/")
         conn2 = sqlite3.connect('Reference_data.db')
         c2 = conn2.cursor()
         c2.executemany("""INSERT INTO price_list (url, raw_text, scrape_date, price, currency) VALUES(?,?,?,?,?)""", price_update)
@@ -192,17 +195,16 @@ def query_for_previous(stamp):
         conn2.close()
     print("Price Updated")
 
-def db_update_image_download(stamp):  
+def db_update_image_download(stamp): 
     req = requests.Session()
-    directory = "/Volumes/stamps_copy/stamps/zeboose/" + str(datetime.datetime.today().strftime('%Y-%m-%d')) +"/"
+    directory = "/Volumes/Stamps/stamps/zeboose/" + str(datetime.datetime.today().strftime('%Y-%m-%d')) +"/"
     image_paths = []
-    file_name = file_names(stamp)
-    image_paths = [directory + file_name[i] for i in range(len(file_name))]
-    print("image paths", image_paths)
+    names = file_names(stamp)
+    image_paths = [directory + names[i] for i in range(len(names))]
     if not os.path.exists(directory):
         os.makedirs(directory)
     os.chdir(directory)
-    for item in range(0,len(file_name)):
+    for item in range(0,len(names)):
         print (stamp['image_urls'][item])
         try:
             imgRequest1=req.get(stamp['image_urls'][item],headers=hdr, timeout=60, stream=True)
@@ -212,7 +214,7 @@ def db_update_image_download(stamp):
             print ("...")
             imgRequest1=req.get(stamp['image_urls'][item], headers=hdr, timeout=60, stream=True)
         if imgRequest1.status_code==200:
-            with open(file_name[item],'wb') as localFile:
+            with open(names[item],'wb') as localFile:
                 imgRequest1.raw.decode_content = True
                 shutil.copyfileobj(imgRequest1.raw, localFile)
                 sleep(randint(18,30))
@@ -233,7 +235,7 @@ def db_update_image_download(stamp):
         stamp['sku'],
         stamp['scrape_date'],
         stamp['image_paths']))
-    os.chdir("/Volumes/stamps_copy/")
+    os.chdir("/Volumes/Stamps/")
     conn = sqlite3.connect('Reference_data.db')
     conn.text_factory = str
     cur = conn.cursor()
@@ -270,17 +272,19 @@ try:
         count += 1
         # loop through all category items
         for category_item in category_items:
-            count += 1
-            if count > randint(75,156):
-                sleep(randint(500,2000))
-                connectTor()
-                showmyip()
-                count = 0
-            else:
-                pass
-            stamp = get_details(category_item, continent)
-            count += len(f_names)
-            query_for_previous(stamp)
-            db_update_image_download(stamp)
+        	try:
+	            count += 1
+	            if count > randint(75,156):
+	                sleep(randint(500,2000))
+	                connectTor()
+	                count = 0
+	            else:
+	                pass
+	            stamp = get_details(category_item, continent)
+	            count += len(file_names(stamp))
+	            query_for_previous(stamp)
+	            db_update_image_download(stamp)
+	        except:
+	        	pass
 except:
     print('This continent doesn\'t exist in list. Please pick some of provided continents.')
