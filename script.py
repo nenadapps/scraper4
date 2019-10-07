@@ -142,9 +142,10 @@ def get_category_items(category_url):
         return items, next_url
 
     try:
-        for item in category_html.select('.product a'):
+        for item in category_html.select('.product h3 a'):
             item_link = 'https://www.zeboose.com' + item.get('href')
-            items.append(item_link)
+            if item_link not in items:
+                items.append(item_link)
     except: 
         pass
 
