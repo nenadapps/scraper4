@@ -1,14 +1,16 @@
 import re
 import datetime
+'''
 import os
-#import sqlite3
-#from fake_useragent import UserAgent
+import sqlite3
+from fake_useragent import UserAgent
 import shutil
-#from stem import Signal
-#from stem.control import Controller
-#import socket
-#import socks
+from stem import Signal
+from stem.control import Controller
+import socket
+import socks
 import requests
+'''
 from random import randint, shuffle
 from time import sleep
 from urllib.request import Request, urlopen
@@ -37,12 +39,7 @@ def showmyip():
     
 UA = UserAgent(fallback='Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.2 (KHTML, like Gecko) Chrome/22.0.1216.0 Safari/537.2')
 
-hdr = {'User-Agent': "'"+UA.random+"'",
-       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-       'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-       'Accept-Encoding': 'none',
-       'Accept-Language': 'en-US,en;q=0.8',
-       'Connection': 'keep-alive'}
+hdr = {'User-Agent': UA.random}
 '''
 def get_html(url):
     html_content = ''
@@ -160,7 +157,7 @@ def get_category_items(category_url):
 '''
 def file_names(stamp):
     file_name = []
-    rand_string = "RAND_ze"+str(randint(0,100000))
+    rand_string = "RAND_ze"+str(randint(0,100000000))
     file_name = [rand_string+"-" + str(i) + ".png" for i in range(len(stamp['image_urls']))]
     return(file_name)
 
@@ -173,7 +170,7 @@ def query_for_previous(stamp):
     col_nm2 = 'raw_text'
     unique = stamp['url']
     unique2 = stamp['raw_text']
-    c.execute('SELECT * FROM zeboose WHERE "{cn}" LIKE "{un}%" AND "{cn2}" LIKE "{un2}%"'.format(cn=col_nm, cn2=col_nm2, un=unique, un2=unique2)))
+    c.execute('SELECT * FROM zeboose WHERE "{cn}" LIKE "{un}%" AND "{cn2}" LIKE "{un2}%"'.format(cn=col_nm, cn2=col_nm2, un=unique, un2=unique2))
     all_rows = c.fetchall()
     conn1.close()
     price_update=[]
@@ -192,8 +189,8 @@ def query_for_previous(stamp):
         conn1.close()
         print (" ")
         #url_count(count)
-        sleep(randint(10,45))
-        pass
+        sleep(randint(10,30))
+        next_step = 'continue'
     else:
         os.chdir("/Volumes/Stamps/")
         conn2 = sqlite3.connect('Reference_data.db')
@@ -201,7 +198,9 @@ def query_for_previous(stamp):
         c2.executemany("""INSERT INTO price_list (url, raw_text, scrape_date, price, currency) VALUES(?,?,?,?,?)""", price_update)
         conn2.commit()
         conn2.close()
+        next_step = 'pass'
     print("Price Updated")
+    return(next_step)
 
 def db_update_image_download(stamp): 
     req = requests.Session()
@@ -255,7 +254,7 @@ def db_update_image_download(stamp):
     print ("all updated")
     print ("++++++++++++")
     print (" ")
-    sleep(randint(45,140)) 
+    sleep(randint(20,140)) 
 '''
 # choose category url with an input statement
 continents = {
@@ -269,30 +268,45 @@ continents = {
 for key in continents:
     print(key + ': ' + continents[key]) 
 continent = input('Pick a continent: ')
-
+'''
 count = 0
-#connectTor()
-#showmyip()
+connectTor()
+'''
 try:
     category_url = continents[continent]
     while(category_url):
         category_items, category_url = get_category_items(category_url)
-        count += 1
+        #count += 1
         # loop through all category items
+        shuffle(list(set(category_items)))
         for category_item in category_items:
             try:
+                stamp = get_details(category_item, continent)
+                '''
                 count += 1
                 if count > randint(75, 156):
-                    sleep(randint(500, 2000))
-                    #connectTor()
-                    count = 0
+                	print('Sleeping...')
+                	sleep(randint(500, 2000))
+                	renew_tor()
+                	connectTor()
+                	hdr['User-Agent']=UA.random
+                	count = 0
                 else:
-                    pass
+                	pass
                 stamp = get_details(category_item, continent)
                 count += len(file_names(stamp))
-                #query_for_previous(stamp)
-                #db_update_image_download(stamp)
+                next_step = query_for_previous(stamp)
+                if next_step == 'continue':
+                	print('Only updating price')
+                	continue
+                elif next_step == 'pass':
+                	print('Inserting the item')
+                	pass
+                else:
+                	break
+                db_update_image_download(stamp)'''
             except:
                 pass
+    print('Scrape Complete')
 except:
     print('This continent doesn\'t exist in list. Please pick some of provided continents.')
